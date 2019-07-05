@@ -3,7 +3,7 @@
     <div class="filter-container">
       <el-form>
         <el-form-item>
-          <el-button type="primary" icon="plus" @click="showCreate" v-if="hasPerm('article:add')">添加
+          <el-button type="primary" icon="plus" @click="showCreate" v-if="hasPerm('cdkey:add')">添加
           </el-button>
         </el-form-item>
       </el-form>
@@ -15,15 +15,15 @@
           <span v-text="getIndex(scope.$index)"> </span>
         </template>
       </el-table-column>
-      <el-table-column align="center" prop="content" label="文章" style="width: 60px;"></el-table-column>
+      <el-table-column align="center" prop="cdkey" label="CdKey" style="width: 60px;"></el-table-column>
       <el-table-column align="center" label="创建时间" width="170">
         <template slot-scope="scope">
-          <span>{{scope.row.createTime}}</span>
+          <span>{{scope.row.createdAt}}</span>
         </template>
       </el-table-column>
-      <el-table-column align="center" label="管理" width="200" v-if="hasPerm('article:update')">
+      <el-table-column align="center" label="管理" width="200" v-if="hasPerm('cdkey:update')">
         <template slot-scope="scope">
-          <el-button type="primary" icon="edit" @click="showUpdate(scope.$index)">修改</el-button>
+          <el-button type="primary" icon="edit" @click="showUpdate(scope.$index)">二维码</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -37,19 +37,31 @@
       layout="total, sizes, prev, pager, next, jumper">
     </el-pagination>
     <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible">
-      <el-form class="small-space" :model="tempArticle" label-position="left" label-width="60px"
+      <el-form class="small-space" :model="tempCdKey" label-position="left" label-width="60px"
                style='width: 300px; margin-left:50px;'>
-        <el-form-item label="文章">
-          <el-input type="text" v-model="tempArticle.content">
+        <el-form-item label="备注">
+          <el-input type="text" v-model="tempCdKey.remark">
           </el-input>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormVisible = false">取 消</el-button>
-        <el-button v-if="dialogStatus=='create'" type="success" @click="createArticle">创 建</el-button>
-        <el-button type="primary" v-else @click="updateArticle">修 改</el-button>
+        <el-button v-if="dialogStatus=='create'" type="success" @click="createCdKey">创 建</el-button>
+        <el-button type="primary" v-else @click="updateCdKey">修 改</el-button>
       </div>
     </el-dialog>
+    <el-dialog :title="qrcode" :visible.sync="qrcodeDialogFormVisible">
+      <el-form class="small-space" :model="tempCdKey" label-position="left" label-width="60px"
+               style='width: 300px; margin-left:50px;'>
+      </el-form>
+      <div class="app-container"  align="center">
+        <img :src="tempCdKey.qrcode" style="width: 300px;"/>
+      </div>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="qrcodeDialogFormVisible = false">取 消</el-button>
+      </div>
+    </el-dialog>
+
   </div>
 </template>
 <script>
@@ -66,13 +78,15 @@
         },
         dialogStatus: 'create',
         dialogFormVisible: false,
+        qrcodeDialogFormVisible: false,
         textMap: {
-          update: '编辑',
-          create: '创建文章'
+          update: '二维码',
+          create: '创建CdKey'
         },
-        tempArticle: {
+        tempCdKey: {
           id: "",
-          content: ""
+          remark: "",
+          qrcode:""
         }
       }
     },
@@ -82,12 +96,12 @@
     methods: {
       getList() {
         //查询列表
-        if (!this.hasPerm('article:list')) {
+        if (!this.hasPerm('cdkey:list')) {
           return
         }
         this.listLoading = true;
         this.api({
-          url: "/article/listArticle",
+          url: "/cdkey/list",
           method: "get",
           params: this.listQuery
         }).then(data => {
@@ -112,34 +126,36 @@
       },
       showCreate() {
         //显示新增对话框
-        this.tempArticle.content = "";
+        this.tempCdKey.remark = "";
         this.dialogStatus = "create"
         this.dialogFormVisible = true
       },
       showUpdate($index) {
         //显示修改对话框
-        this.tempArticle.id = this.list[$index].id;
-        this.tempArticle.content = this.list[$index].content;
+        this.tempCdKey.id = this.list[$index].id;
         this.dialogStatus = "update"
-        this.dialogFormVisible = true
+        this.qrcodeDialogFormVisible = true
+        this.tempCdKey.qrcode = "api/cdkey/qrcode?id="+this.tempCdKey.id;
+        this.listLoading = false;
+
       },
-      createArticle() {
-        //保存新文章
+      createCdKey() {
+        //保存新CdKey
         this.api({
-          url: "/article/addArticle",
+          url: "/cdkey/add",
           method: "post",
-          data: this.tempArticle
+          data: this.tempCdKey
         }).then(() => {
           this.getList();
           this.dialogFormVisible = false
         })
       },
-      updateArticle() {
-        //修改文章
+      updateCdKey() {
+        //修改CdKey
         this.api({
-          url: "/article/updateArticle",
+          url: "/cdkey/update",
           method: "post",
-          data: this.tempArticle
+          data: this.tempCdKey
         }).then(() => {
           this.getList();
           this.dialogFormVisible = false

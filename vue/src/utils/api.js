@@ -24,7 +24,9 @@ service.interceptors.response.use(
     }
     if (res.returnCode == '100') {
       return res.returnData;
-    } else if (res.returnCode == "20011") {
+    } else if (res.code == '200') {
+      return res.data;
+    }else if (res.returnCode == "20011") {
       Message({
         showClose: true,
         message: res.returnMsg,

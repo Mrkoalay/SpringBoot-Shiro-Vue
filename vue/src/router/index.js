@@ -34,11 +34,11 @@ export const asyncRouterMap = [
     meta: {title: '功能模块', icon: 'tree'},
     children: [
       {
-        path: 'article',
-        name: '文章',
-        component: _import('article/article'),
-        meta: {title: '文章', icon: 'example'},
-        menu: 'article'
+        path: 'cdkey',
+        name: '激活码',
+        component: _import('cdkey/cdkey'),
+        meta: {title: '激活码', icon: 'example'},
+        menu: 'cdkey'
       },
     ]
   },
