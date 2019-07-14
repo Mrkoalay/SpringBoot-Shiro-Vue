@@ -40,6 +40,13 @@ export const asyncRouterMap = [
         meta: {title: '激活码', icon: 'example'},
         menu: 'cdkey'
       },
+      {
+        path: 'key_role',
+        name: '权限管理',
+        component: _import('cdkey/role'),
+        meta: {title: '权限管理', icon: 'example'},
+        menu: 'key_role'
+      }
     ]
   },
   {

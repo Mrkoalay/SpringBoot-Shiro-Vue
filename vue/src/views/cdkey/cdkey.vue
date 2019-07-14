@@ -16,6 +16,12 @@
         </template>
       </el-table-column>
       <el-table-column align="center" prop="cdkey" label="CdKey" style="width: 60px;"></el-table-column>
+       <el-table-column align="center" label="角色" width="100">
+              <template slot-scope="scope">
+                <el-tag type="success" v-text="scope.row.roleName" v-if="scope.row.roleId===1"></el-tag>
+                <el-tag type="primary" v-text="scope.row.roleName" v-else></el-tag>
+              </template>
+            </el-table-column>
       <el-table-column align="center" label="创建时间" width="170">
         <template slot-scope="scope">
           <span>{{scope.row.createdAt}}</span>
@@ -24,6 +30,9 @@
       <el-table-column align="center" label="管理" width="200" v-if="hasPerm('cdkey:update')">
         <template slot-scope="scope">
           <el-button type="primary" icon="edit" @click="showUpdate(scope.$index)">二维码</el-button>
+            <el-button type="danger" icon="delete"
+                               @click="remove(scope.$index)">删除
+                    </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -39,11 +48,22 @@
     <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible">
       <el-form class="small-space" :model="tempCdKey" label-position="left" label-width="60px"
                style='width: 300px; margin-left:50px;'>
-        <el-form-item label="备注">
-          <el-input type="text" v-model="tempCdKey.remark">
-          </el-input>
-        </el-form-item>
+         <el-form-item label="角色" required>
+                  <el-select v-model="tempCdKey.roleId" placeholder="请选择">
+                    <el-option
+                      v-for="item in roles"
+                      :key="item.roleId"
+                      :label="item.roleName"
+                      :value="item.roleId">
+                    </el-option>
+                  </el-select>
+          </el-form-item>
+          <el-form-item label="数量" required>
+                     <el-input type="text" v-model="tempCdKey.count" style="width: 50px;">
+                              </el-input>
+           </el-form-item>
       </el-form>
+
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormVisible = false">取 消</el-button>
         <el-button v-if="dialogStatus=='create'" type="success" @click="createCdKey">创 建</el-button>
@@ -83,17 +103,48 @@
           update: '二维码',
           create: '创建CdKey'
         },
+        roles :null,
         tempCdKey: {
           id: "",
           remark: "",
-          qrcode:""
+          qrcode:"",
+          roleId:"",
+          count:1
         }
       }
     },
     created() {
       this.getList();
+      this.getAllRoles();
     },
     methods: {
+     remove($index) {
+            let _vue = this;
+            this.$confirm('确定删除此key?', '提示', {
+              confirmButtonText: '确定',
+              showCancelButton: false,
+              type: 'warning'
+            }).then(() => {
+              let cdkey = _vue.list[$index];
+              _vue.api({
+                url: "/cdkey/delete",
+                method: "post",
+                data: cdkey
+              }).then(() => {
+                _vue.getList()
+              }).catch(() => {
+                _vue.$message.error("删除失败")
+              })
+            })
+          },
+      getAllRoles() {
+            this.api({
+              url: "/keyRole/getAllRoles",
+              method: "get"
+            }).then(data => {
+              this.roles = data.list;
+            })
+          },
       getList() {
         //查询列表
         if (!this.hasPerm('cdkey:list')) {

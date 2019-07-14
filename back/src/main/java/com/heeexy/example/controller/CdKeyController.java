@@ -1,12 +1,15 @@
 package com.heeexy.example.controller;
 
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.heeexy.example.entity.CdKey;
 import com.heeexy.example.entity.MyContainer;
 import com.heeexy.example.service.CdKeyService;
+import com.heeexy.example.service.KeyRoleService;
 import com.heeexy.example.service.RedisService;
+import com.heeexy.example.util.CommonUtil;
 import com.heeexy.example.util.Docker;
 import com.heeexy.example.util.QRUtil;
 import com.heeexy.example.util.Response;
@@ -22,6 +25,8 @@ import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletResponse;
 import java.awt.image.BufferedImage;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -35,24 +40,31 @@ public class CdKeyController {
     private CdKeyService cdKeyService;
     @Autowired
     private RedisService redisService;
+    @Autowired
+    KeyRoleService keyRoleService;
 
 
     @RequiresPermissions("cdkey:list")
     @GetMapping("/list")
     public Response listUser(PageParam pageParam, CdKey cdKey) {
-        Page page = new PageFactory().buildPage(pageParam);
-        Page result = (Page) cdKeyService.page(page, new QueryWrapper<>(cdKey));
-        return Response.success().put(new PageResponse(result));
+        return cdKeyService.myList(pageParam,cdKey);
     }
 
     @PostMapping("/add")
     public Response addUser(@RequestBody(required = false) CdKey cdKey) {
-        if (StringUtils.isEmpty(cdKey.getCdkey())) {
-            cdKey.setCdkey(UUID.randomUUID().toString());
+        CommonUtil.hasAllRequired((JSONObject) JSONObject.toJSON(cdKey), "roleId");
+        int count = cdKey.getCount();
+        List<CdKey> cdKeyList = new ArrayList<>();
+        while(count-- >0){
+            CdKey tmpCdKey = new CdKey();
+            tmpCdKey.setCdkey(UUID.randomUUID().toString());
+            tmpCdKey.setRoleId(cdKey.getRoleId());
+            tmpCdKey.setRemark(cdKey.getRemark());
+            cdKeyList.add(tmpCdKey);
         }
-        cdKeyService.save(cdKey);
-        MyContainer containd = new MyContainer(cdKey.getId() + "", cdKey.getCdkey());
-        Docker.getInstance().Run(containd);
+        cdKeyService.saveBatch(cdKeyList);
+    /*    MyContainer containd = new MyContainer(cdKey.getId() + "", cdKey.getCdkey());
+        Docker.getInstance().Run(containd);*/
         return Response.success();
     }
 

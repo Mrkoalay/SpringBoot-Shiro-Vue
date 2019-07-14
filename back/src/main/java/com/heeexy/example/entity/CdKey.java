@@ -1,5 +1,6 @@
 package com.heeexy.example.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -18,8 +19,13 @@ public class CdKey extends SuperEntity {
 
 	private String remark;
 	private String cdkey;
-
+	private Integer roleId;
 	private String flag;
+
+	@TableField(exist = false)
+	private String roleName;
+	@TableField(exist = false)
+	private Integer count;
 
 
 }
