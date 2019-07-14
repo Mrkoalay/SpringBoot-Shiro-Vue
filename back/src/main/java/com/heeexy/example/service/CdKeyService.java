@@ -13,4 +13,6 @@ public interface CdKeyService extends IService<CdKey> {
 
 
     Response myList(PageParam pageParam, CdKey cdKey);
+
+    Response validate(String cdkey);
 }

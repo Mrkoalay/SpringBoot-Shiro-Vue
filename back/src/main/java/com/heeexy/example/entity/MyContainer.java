@@ -4,14 +4,14 @@ import lombok.Data;
 
 @Data
 public class MyContainer {
-    private String instanceId;
-    private String cdKey;
+    private String image;
+    private String[] envs;
 
     public MyContainer() {
     }
 
-    public MyContainer(String instanceId, String cdKey) {
-        this.instanceId = instanceId;
-        this.cdKey = cdKey;
+    public MyContainer(String image, String[] envs) {
+        this.image = image;
+        this.envs = envs;
     }
 }

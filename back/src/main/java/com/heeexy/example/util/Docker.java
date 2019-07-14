@@ -2,9 +2,14 @@ package com.heeexy.example.util;
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerResponse;
+import com.github.dockerjava.api.command.DockerCmdExecFactory;
 import com.github.dockerjava.api.model.ExposedPort;
+import com.github.dockerjava.api.model.Info;
 import com.github.dockerjava.api.model.Ports;
+import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientBuilder;
+import com.github.dockerjava.core.DockerClientConfig;
+import com.github.dockerjava.jaxrs.JerseyDockerCmdExecFactory;
 import com.heeexy.example.entity.MyContainer;
 
 import static com.github.dockerjava.api.model.HostConfig.newHostConfig;
@@ -32,7 +37,15 @@ public class Docker {
      * @return
      */
     public DockerClient connectDocker() {
-        return DockerClientBuilder.getInstance("tcp://140.143.226.139:2375").build();
+
+        System.out.println(1);
+        DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder()
+                .withDockerTlsVerify(false)
+                .withDockerConfig("/Users/yangtengcan/Documents/workspace/youduworkspace/SpringBoot-Shiro-Vue/back/target/classes/ca")
+                .withDockerCertPath("/Users/yangtengcan/Documents/workspace/youduworkspace/SpringBoot-Shiro-Vue/back/target/classes/ca")
+                .withDockerHost("tcp://140.143.226.139:2375")
+                .build();
+        return DockerClientBuilder.getInstance(config).build();
     }
 
     /**
@@ -54,11 +67,8 @@ public class Docker {
     }
 
     public CreateContainerResponse createContainers(MyContainer containd) {
-        String instanceId = containd.getInstanceId();
-        String[] env = new String[]{"INSTANCE-ID="+instanceId,  "CDKEY="+containd.getCdKey() };
-        CreateContainerResponse container = dockerClient.createContainerCmd("jeeves")
-                .withName(instanceId)
-                .withEnv(env)
+        CreateContainerResponse container = dockerClient.createContainerCmd(containd.getImage())
+                .withEnv(containd.getEnvs())
                 .exec();
         return container;
     }
@@ -99,6 +109,7 @@ public class Docker {
     public static void main(String[] args) {
 
         //  docker run --name 21 --env INSTANCE-ID=22 --env CDKEY=52bcdee5-b4b3-42a1-9b99-18f671b85d54 -d jeeves
+        // docker info
 
         //创建容器
         CreateContainerResponse container = Docker.getInstance().createContainers("test1", "hello-world:latest");
