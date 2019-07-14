@@ -4,17 +4,10 @@ import com.heeexy.example.service.CdKeyService;
 import com.heeexy.example.service.RedisService;
 import com.heeexy.example.util.Docker;
 import com.heeexy.example.util.Response;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
-
-import javax.imageio.ImageIO;
-import javax.servlet.http.HttpServletResponse;
-import java.io.OutputStream;
 
 /**
  * @date: 2017/10/24 16:04
@@ -30,6 +23,9 @@ public class WxController {
     private RedisService redisService;
     final int UNFIND = 99;
 
+    @ApiResponses(value = {
+            @ApiResponse(code = 100, message = "无效key")
+    })
     @ApiOperation(value = "校验cdkey")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "cdkey", value = "cdkey", required = true, dataType = "Integer", paramType = "query"),
@@ -39,6 +35,9 @@ public class WxController {
         return cdKeyService.validate(cdkey);
     }
 
+    @ApiResponses(value = {
+            @ApiResponse(code = 99, message = "未查找到二维码信息")
+    })
     @ApiOperation(value = "获取二维码")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "cdkey", value = "cdkey", required = true, dataType = "Integer", paramType = "query"),
@@ -53,17 +52,20 @@ public class WxController {
         return Response.success().put(qrCode);
     }
 
+    @ApiResponses(value = {
+            @ApiResponse(code = 99, message = "未查找到相关信息")
+    })
     @ApiOperation(value = "任务结束")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "cdkey", value = "cdkey", required = true, dataType = "Integer", paramType = "query"),
     })
-    @GetMapping("/finish")
+    @PostMapping("/finish")
     public Response finish(@RequestParam("cdkey") String cdkey) {
         String containId = (String) redisService.hmGet("containId", cdkey);
         if (StringUtils.isEmpty(containId)) {
             return Response.error(UNFIND, "未查找到相关信息");
         }
-        Docker.getInstance().removeContainer(containId);
+        Docker.getInstance().removeContainer(containId) ;
         return Response.success();
     }
 }
