@@ -10,6 +10,7 @@ import com.heeexy.example.dao.KeyRoleDao;
 import com.heeexy.example.entity.CdKey;
 import com.heeexy.example.entity.MyContainer;
 import com.heeexy.example.service.CdKeyService;
+import com.heeexy.example.service.RedisService;
 import com.heeexy.example.util.Docker;
 import com.heeexy.example.util.Response;
 import com.heeexy.example.util.page.PageFactory;
@@ -31,6 +32,9 @@ public class CdKeyServiceImpl extends ServiceImpl<CdKeyDao, CdKey> implements Cd
     private static final Logger logger = LoggerFactory.getLogger(CdKeyServiceImpl.class);
     @Autowired
     KeyRoleDao keyRoleDao;
+    @Autowired
+    RedisService redisService;
+
     final Integer UN_USE = 0;
     final Integer USED = 1;
     final Integer INVALID = 100;
@@ -80,8 +84,9 @@ public class CdKeyServiceImpl extends ServiceImpl<CdKeyDao, CdKey> implements Cd
         String image = "memory/wechat";
         String[] envs = new String[]{"REDIS_HOST=140.143.226.139", "REDIS_PORT=6379", "REDIS_AUTH=2019#docker",
                 "PROTOCOL_HOST=62.234.70.116", "WEBSOCKET_PORT=22222", "HTTP_PORT=222221"};
-        Docker.getInstance().Run(new MyContainer(image, envs));
+        String containId = Docker.getInstance().Run(new MyContainer(cdkey,image, envs));
         logger.info("=====>容器启动完成 "+cdkey);
+        redisService.hmSet("containId",cdKey,containId);
 
         logger.info("=====>更新key 状态 "+cdkey);
         UpdateWrapper updateWrapper = new UpdateWrapper();

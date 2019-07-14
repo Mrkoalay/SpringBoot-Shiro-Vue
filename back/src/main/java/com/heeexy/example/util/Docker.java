@@ -68,14 +68,15 @@ public class Docker {
 
     public CreateContainerResponse createContainers(MyContainer containd) {
         CreateContainerResponse container = dockerClient.createContainerCmd(containd.getImage())
+                .withName(containd.getName())
                 .withEnv(containd.getEnvs())
                 .exec();
         return container;
     }
 
-    public void Run(MyContainer containd){
+    public String Run(MyContainer containd){
         CreateContainerResponse createContainerResponse = createContainers(containd);
-        startContainer(createContainerResponse.getId());
+        return startContainer(createContainerResponse.getId());
     }
 
     /**
@@ -83,8 +84,9 @@ public class Docker {
      *
      * @param containerId
      */
-    public void startContainer(String containerId) {
+    public String startContainer(String containerId) {
         dockerClient.startContainerCmd(containerId).exec();
+        return  containerId;
     }
 
     /**
@@ -102,8 +104,8 @@ public class Docker {
      * @param client
      * @param containerId
      */
-    public void removeContainer(DockerClient client, String containerId) {
-        client.removeContainerCmd(containerId).exec();
+    public void removeContainer( String containerId) {
+        dockerClient.removeContainerCmd(containerId).exec();
     }
 
     public static void main(String[] args) {
