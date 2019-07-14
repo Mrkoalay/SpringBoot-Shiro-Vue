@@ -67,9 +67,9 @@ public class Swagger2Config {
 
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder()
-                .title("cssAPI在线文档")
-                .description("能看文档的尽量别找我")
-                .termsOfServiceUrl("http://www.css.cn")
+                .title("API在线文档")
+                .description("文档说明")
+                .termsOfServiceUrl("http://www.wx.cn")
                 .version("1.0")
                 .build();
     }
