@@ -4,7 +4,7 @@ spring:
     active:
   redis:
     #数据库索引
-    database: 5
+    database: 0
     host: 140.143.226.139
     port: 6379
     password: 2019#docker

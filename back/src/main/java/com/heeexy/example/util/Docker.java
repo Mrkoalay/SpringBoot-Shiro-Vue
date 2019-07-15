@@ -2,12 +2,16 @@ package com.heeexy.example.util;
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerResponse;
+import com.github.dockerjava.api.model.Container;
 import com.github.dockerjava.api.model.ExposedPort;
 import com.github.dockerjava.api.model.Ports;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientBuilder;
 import com.github.dockerjava.core.DockerClientConfig;
 import com.heeexy.example.entity.MyContainer;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.github.dockerjava.api.model.HostConfig.newHostConfig;
 
@@ -71,7 +75,7 @@ public class Docker {
         return container;
     }
 
-    public String Run(MyContainer containd){
+    public String Run(MyContainer containd) {
         CreateContainerResponse createContainerResponse = createContainers(containd);
         return startContainer(createContainerResponse.getId());
     }
@@ -83,7 +87,20 @@ public class Docker {
      */
     public String startContainer(String containerId) {
         dockerClient.startContainerCmd(containerId).exec();
-        return  containerId;
+        return containerId;
+    }
+
+    /**
+     * 根据名字判断容器是否存在
+     *
+     * @param containerId
+     * @return
+     */
+    public boolean hasContainer(String containerId) {
+        List<String> names = new ArrayList<>();
+        names.add(containerId);
+        List<Container> list = dockerClient.listContainersCmd().withNameFilter(names).exec();
+        return !list.isEmpty();
     }
 
     /**
@@ -98,10 +115,9 @@ public class Docker {
     /**
      * 删除容器
      *
-     * @param client
      * @param containerId
      */
-    public void removeContainer( String containerId) {
+    public void removeContainer(String containerId) {
         dockerClient.removeContainerCmd(containerId).exec();
     }
 
@@ -109,11 +125,12 @@ public class Docker {
 
         //  docker run --name 21 --env INSTANCE-ID=22 --env CDKEY=52bcdee5-b4b3-42a1-9b99-18f671b85d54 -d jeeves
         // docker info
-
+        Boolean b = Docker.getInstance().hasContainer("cbb272c0-18e4-4c5b-81cd-18a75357629f");
+        System.out.println(b);
         //创建容器
-        CreateContainerResponse container = Docker.getInstance().createContainers("test1", "hello-world:latest");
+        //CreateContainerResponse container = Docker.getInstance().createContainers("test1", "hello-world:latest");
         //启动容器
-        Docker.getInstance().startContainer(container.getId());
+        //Docker.getInstance().startContainer(container.getId());
 
     }
 
