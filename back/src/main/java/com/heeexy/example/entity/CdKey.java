@@ -21,7 +21,7 @@ public class CdKey extends SuperEntity {
 	private String cdkey;
 	private Integer roleId;
 
-	// 0 未使用 1已使用
+	// 0 未使用 1使用中 2已使用
 	private String flag;
 
 	@TableField(exist = false)
