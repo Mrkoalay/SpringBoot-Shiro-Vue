@@ -2,6 +2,8 @@ package com.heeexy.example.config.shiro;
 
 import org.apache.shiro.authc.credential.HashedCredentialsMatcher;
 import org.apache.shiro.mgt.SecurityManager;
+import org.apache.shiro.session.mgt.SessionManager;
+import org.apache.shiro.session.mgt.eis.EnterpriseCacheSessionDAO;
 import org.apache.shiro.spring.LifecycleBeanPostProcessor;
 import org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor;
 import org.apache.shiro.spring.web.ShiroFilterFactoryBean;
@@ -70,6 +72,7 @@ public class ShiroConfiguration {
     public SecurityManager securityManager() {
         DefaultWebSecurityManager securityManager = new DefaultWebSecurityManager();
         securityManager.setRealm(userRealm());
+        securityManager.setSessionManager(sessionManager());
         return securityManager;
     }
 
@@ -82,6 +85,14 @@ public class ShiroConfiguration {
         return userRealm;
     }
 
+    //自定义sessionManager
+    @Bean
+    public SessionManager sessionManager() {
+        MySessionManager fireSessionManager = new MySessionManager();
+        //这里可以不设置。Shiro有默认的session管理。如果缓存为Redis则需改用Redis的管理
+        fireSessionManager.setSessionDAO(new EnterpriseCacheSessionDAO());
+        return fireSessionManager;
+    }
     /**
      * 凭证匹配器
      * （由于我们的密码校验交给Shiro的SimpleAuthenticationInfo进行处理了
