@@ -11,6 +11,7 @@ import com.heeexy.example.dao.KeyRoleDao;
 import com.heeexy.example.entity.CdKey;
 import com.heeexy.example.entity.MyContainer;
 import com.heeexy.example.service.CdKeyService;
+import com.heeexy.example.service.DockerService;
 import com.heeexy.example.service.RedisService;
 import com.heeexy.example.util.Docker;
 import com.heeexy.example.util.Response;
@@ -41,28 +42,7 @@ public class CdKeyServiceImpl extends ServiceImpl<CdKeyDao, CdKey> implements Cd
     RedisService redisService;
 
     @Autowired
-    Docker docker;
-
-    @Value("${wechat.docker.image-name}")
-    private String imageName;
-
-    @Value("${spring.redis.host}")
-    private String redisHost;
-
-    @Value("${spring.redis.port}")
-    private Integer redisPort;
-
-    @Value("${spring.redis.password}")
-    private String redisAuth;
-
-    @Value("${wechat.protocol.host}")
-    private String wechatProtocolHost;
-
-    @Value("${wechat.protocol.ws-port}")
-    private String wechatWsPort;
-
-    @Value("${wechat.protocol.http-port}")
-    private String wechatHttpPort;
+    DockerService dockerService;
 
     final Integer UN_USE = 0;
     final Integer USED = 1;
@@ -110,14 +90,7 @@ public class CdKeyServiceImpl extends ServiceImpl<CdKeyDao, CdKey> implements Cd
         // docker run memory/wechat
         // docker run --env REDIS_HOST=140.143.226.139 --env REDIS_PORT=6379 --env REDIS_AUTH=2019#docker --env PROTOCOL_HOST=62.234.70.116 --env WEBSOCKET_PORT=22222 --env HTTP_PORT=222221 -d memory/wechat
 
-        Container container = docker.getContainerByNames(cdkey);
-        if (container == null) {
-            logger.info("=====>开始启动容器 " + cdkey);
-            createContainer(cdKey);
-        } else if (!docker.isRunning(container)) {
-            logger.info("=====>容器已经停止，正在重启 " + cdkey);
-            restartContainer(cdKey);
-        }
+        dockerService.runContainer(cdKey);
 
         if (cdKey.getFlag().equals(String.valueOf(UN_USE))) {
             logger.info("=====>更新key 状态 " + cdkey);
@@ -130,20 +103,5 @@ public class CdKeyServiceImpl extends ServiceImpl<CdKeyDao, CdKey> implements Cd
         return Response.success().put(cdKey);
     }
 
-    @Async("taskExecutor")
-    public void restartContainer(CdKey cdKey) {
-        docker.restartContainerByNames(cdKey.getCdkey());
-        logger.info("=====>容器启动完成 " + cdKey.getCdkey());
-    }
 
-    @Async("taskExecutor")
-    public void createContainer(CdKey cdKey) {
-        String cdkey = cdKey.getCdkey();
-        String image = imageName;
-        String[] envs = new String[]{"CDKEY=" + cdkey, "REDIS_HOST=" + redisHost, "REDIS_PORT=" + redisPort, "REDIS_AUTH=" + redisAuth,
-                "PROTOCOL_HOST=" + wechatProtocolHost, "WEBSOCKET_PORT=" + wechatWsPort, "HTTP_PORT=" + wechatHttpPort};
-        System.out.println(Arrays.toString(envs));
-        docker.Run(new MyContainer(cdkey, image, envs));
-        logger.info("=====>容器启动完成 " + cdkey);
-    }
 }
