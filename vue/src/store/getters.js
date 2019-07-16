@@ -8,7 +8,7 @@ const getters = {
   role: state => state.user.role,
   menus: state => state.user.menus,
   permissions: state => state.user.permissions,
-
+  token: state => state.user.token,
   permission_routers: state => state.permission.routers,
   addRouters: state => state.permission.addRouters
 }

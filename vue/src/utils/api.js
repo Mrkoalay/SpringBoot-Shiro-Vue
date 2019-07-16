@@ -9,6 +9,10 @@ const service = axios.create({
 })
 // request拦截器
 service.interceptors.request.use(config => {
+  if (store.getters.token) {
+    // 让每个请求携带token-- ['X-Token']为自定义key 请根据实际情况自行修改
+    config.headers['Authorization'] = store.getters.token
+  }
   return config
 }, error => {
   // Do something with request error
@@ -18,6 +22,7 @@ service.interceptors.request.use(config => {
 // respone拦截器
 service.interceptors.response.use(
   response => {
+    debugger;
     const res = response.data;
     if (res.returnCode == '1000') {
       return res;
