@@ -12,6 +12,7 @@ const user = {
     role: '',
     menus: [],
     permissions: [],
+    token: getToken(),
   },
   mutations: {
     SET_USER: (state, userInfo) => {
@@ -38,9 +39,11 @@ const user = {
           method: "post",
           data: loginForm
         }).then(data => {
+          debugger;
+          console.log(111111);
           if (data.result === "success") {
-            //cookie中保存前端登录状态
-            setToken();
+            commit('SET_TOKEN', data.returnData)
+            setToken(data.returnData);
           }
           resolve(data);
         }).catch(err => {
@@ -55,10 +58,9 @@ const user = {
           url: '/login/getInfo',
           method: 'post'
         }).then(data => {
+          debugger;
           //储存用户信息
           commit('SET_USER', data.userPermission);
-          //cookie保存登录状态,仅靠vuex保存的话,页面刷新就会丢失登录状态
-          setToken();
           //生成路由
           let userPermission = data.userPermission ;
           store.dispatch('GenerateRoutes', userPermission).then(() => {

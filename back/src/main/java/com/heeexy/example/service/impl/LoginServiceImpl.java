@@ -46,6 +46,7 @@ public class LoginServiceImpl implements LoginService {
         try {
             currentUser.login(token);
             returnData.put("result", "success");
+            returnData.put("returnData", currentUser.getSession().getId());
         } catch (AuthenticationException e) {
             returnData.put("result", "fail");
         }
