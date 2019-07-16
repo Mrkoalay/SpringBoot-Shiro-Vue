@@ -58,3 +58,13 @@ mybatis-plus:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 server:
   port: 8081
+
+wechat:
+  docker:
+    image-name: memory/wechat
+    host: 140.143.226.139
+    port: 2375
+  protocol:
+    host: 62.234.70.116
+    ws-port: 22222
+    http-port: 22221

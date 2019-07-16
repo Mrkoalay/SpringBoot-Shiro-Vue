@@ -8,6 +8,7 @@ import com.heeexy.example.util.Docker;
 import com.heeexy.example.util.Response;
 import io.swagger.annotations.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -29,6 +30,12 @@ public class WxController {
     private RedisService redisService;
 
     @Autowired
+    private Docker docker;
+
+    @Value("${wechat.docker.host}")
+    private String host;
+
+    @Autowired
     private StringRedisTemplate stringRedisTemplate;
 
     final int UNFIND = 99;
@@ -42,7 +49,7 @@ public class WxController {
     })
     @PostMapping("/validate")
     public Response validate(@RequestParam("cdkey") String cdkey) {
-        return cdKeyService.validate(cdkey);
+       return cdKeyService.validate(cdkey);
     }
 
     @ApiResponses(value = {
@@ -86,11 +93,7 @@ public class WxController {
     })
     @PostMapping("/finish")
     public Response finish(@RequestParam("cdkey") String cdkey) {
-        String containId = (String) redisService.hmGet("containId", cdkey);
-        if (StringUtils.isEmpty(containId)) {
-            return Response.error(UNFIND, "未查找到相关信息");
-        }
-        Docker.getInstance().removeContainer(containId) ;
+        docker.removeContainerByNames(cdkey);
         return Response.success();
     }
 }
