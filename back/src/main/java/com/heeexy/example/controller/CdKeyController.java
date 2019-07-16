@@ -77,9 +77,7 @@ public class CdKeyController {
     @RequiresPermissions("cdkey:update")
     @GetMapping("/qrcode")
     public void qrcode(HttpServletResponse response, Integer id) throws Exception {
-
         BufferedImage qrcode = QRUtil.getRQ((String) redisService.hmGet("qrcode", id + ""), 100);
-
         response.setContentType("image/png");
         OutputStream os = response.getOutputStream();
         ImageIO.write(qrcode, "png", os);

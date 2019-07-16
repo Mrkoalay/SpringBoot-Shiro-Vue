@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.github.dockerjava.api.model.Container;
 import com.heeexy.example.dao.CdKeyDao;
 import com.heeexy.example.dao.KeyRoleDao;
 import com.heeexy.example.entity.CdKey;
@@ -19,8 +20,11 @@ import com.heeexy.example.util.page.PageResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -32,12 +36,38 @@ public class CdKeyServiceImpl extends ServiceImpl<CdKeyDao, CdKey> implements Cd
     private static final Logger logger = LoggerFactory.getLogger(CdKeyServiceImpl.class);
     @Autowired
     KeyRoleDao keyRoleDao;
+
     @Autowired
     RedisService redisService;
+
+    @Autowired
+    Docker docker;
+
+    @Value("${wechat.docker.image-name}")
+    private String imageName;
+
+    @Value("${spring.redis.host}")
+    private String redisHost;
+
+    @Value("${spring.redis.port}")
+    private Integer redisPort;
+
+    @Value("${spring.redis.password}")
+    private String redisAuth;
+
+    @Value("${wechat.protocol.host}")
+    private String wechatProtocolHost;
+
+    @Value("${wechat.protocol.ws-port}")
+    private String wechatWsPort;
+
+    @Value("${wechat.protocol.http-port}")
+    private String wechatHttpPort;
 
     final Integer UN_USE = 0;
     final Integer USED = 1;
     final Integer INVALID = 100;
+    final Integer FINISH = 2;
 
 
     @Override
@@ -67,33 +97,53 @@ public class CdKeyServiceImpl extends ServiceImpl<CdKeyDao, CdKey> implements Cd
     public Response validate(String cdkey) {
 
         // 验证
-        logger.info("=====>开始验证key "+cdkey);
+        logger.info("=====>开始验证key " + cdkey);
         QueryWrapper queryWrapper = new QueryWrapper();
-        queryWrapper.eq("flag", UN_USE);
         queryWrapper.eq("cdkey", cdkey);
         CdKey cdKey = getOne(queryWrapper);
         if (cdKey == null) {
             return Response.error(INVALID, "无效key");
+        } else if (cdKey.getFlag().equals(String.valueOf(FINISH))) {
+            return Response.error(FINISH, "已经使用");
         }
         // 启动容器
-
         // docker run memory/wechat
         // docker run --env REDIS_HOST=140.143.226.139 --env REDIS_PORT=6379 --env REDIS_AUTH=2019#docker --env PROTOCOL_HOST=62.234.70.116 --env WEBSOCKET_PORT=22222 --env HTTP_PORT=222221 -d memory/wechat
 
-        logger.info("=====>开始启动容器 "+cdkey);
-        String image = "memory/wechat";
-        String[] envs = new String[]{"REDIS_HOST=140.143.226.139", "REDIS_PORT=6379", "REDIS_AUTH=2019#docker",
-                "PROTOCOL_HOST=62.234.70.116", "WEBSOCKET_PORT=22222", "HTTP_PORT=222221"};
-        String containId = Docker.getInstance().Run(new MyContainer(cdkey,image, envs));
-        logger.info("=====>容器启动完成 "+cdkey);
-        redisService.hmSet("containId",cdKey,containId);
+        Container container = docker.getContainerByNames(cdkey);
+        if (container == null) {
+            logger.info("=====>开始启动容器 " + cdkey);
+            createContainer(cdKey);
+        } else if (!docker.isRunning(container)) {
+            logger.info("=====>容器已经停止，正在重启 " + cdkey);
+            restartContainer(cdKey);
+        }
 
-        logger.info("=====>更新key 状态 "+cdkey);
-        UpdateWrapper updateWrapper = new UpdateWrapper();
-        updateWrapper.eq("cdkey", cdkey);
-        updateWrapper.set("flag",USED);
-        update(updateWrapper);
+        if (cdKey.getFlag().equals(String.valueOf(UN_USE))) {
+            logger.info("=====>更新key 状态 " + cdkey);
+            UpdateWrapper updateWrapper = new UpdateWrapper();
+            updateWrapper.eq("cdkey", cdkey);
+            updateWrapper.set("flag", USED);
+            update(updateWrapper);
+        }
 
-        return Response.success().put(cdKey.getRoleId());
+        return Response.success().put(cdKey);
+    }
+
+    @Async("taskExecutor")
+    public void restartContainer(CdKey cdKey) {
+        docker.restartContainerByNames(cdKey.getCdkey());
+        logger.info("=====>容器启动完成 " + cdKey.getCdkey());
+    }
+
+    @Async("taskExecutor")
+    public void createContainer(CdKey cdKey) {
+        String cdkey = cdKey.getCdkey();
+        String image = imageName;
+        String[] envs = new String[]{"CDKEY=" + cdkey, "REDIS_HOST=" + redisHost, "REDIS_PORT=" + redisPort, "REDIS_AUTH=" + redisAuth,
+                "PROTOCOL_HOST=" + wechatProtocolHost, "WEBSOCKET_PORT=" + wechatWsPort, "HTTP_PORT=" + wechatHttpPort};
+        System.out.println(Arrays.toString(envs));
+        docker.Run(new MyContainer(cdkey, image, envs));
+        logger.info("=====>容器启动完成 " + cdkey);
     }
 }
