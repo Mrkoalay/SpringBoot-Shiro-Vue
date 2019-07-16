@@ -28,6 +28,9 @@ const user = {
       state.role = '';
       state.menus = [];
       state.permissions = [];
+    },
+    SET_TOKEN: (state, token) => {
+      state.token = token
     }
   },
   actions: {
