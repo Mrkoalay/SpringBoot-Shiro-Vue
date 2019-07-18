@@ -44,10 +44,14 @@ public class CdKeyServiceImpl extends ServiceImpl<CdKeyDao, CdKey> implements Cd
     @Autowired
     DockerService dockerService;
 
+    @Autowired
+    Docker docker;
+
     final Integer UN_USE = 0;
     final Integer USED = 1;
     final Integer INVALID = 100;
     final Integer FINISH = 2;
+    final Integer PROCESS = 3;
 
 
     @Override
@@ -89,6 +93,10 @@ public class CdKeyServiceImpl extends ServiceImpl<CdKeyDao, CdKey> implements Cd
         // 启动容器
         // docker run memory/wechat
         // docker run --env REDIS_HOST=140.143.226.139 --env REDIS_PORT=6379 --env REDIS_AUTH=2019#docker --env PROTOCOL_HOST=62.234.70.116 --env WEBSOCKET_PORT=22222 --env HTTP_PORT=222221 -d memory/wechat
+        Container container = docker.getContainerByNames(cdkey);
+        if (container != null && docker.isRunning(container)) {
+            return Response.error(PROCESS, "当前激活码正在使用中，请在微信中操作");
+        }
 
         dockerService.runContainer(cdKey);
 
