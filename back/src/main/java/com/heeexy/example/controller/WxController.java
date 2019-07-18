@@ -68,6 +68,17 @@ public class WxController {
         return Response.success().put(qrCode);
     }
 
+
+    @ApiOperation(value = "获取头像")
+    @GetMapping("/profile")
+    public Response profile(@RequestParam("cdkey") String cdkey) {
+        String face = stringRedisTemplate.opsForValue().get("face_" + cdkey);
+        if (StringUtils.isEmpty(face)) {
+            return Response.error(UNFIND, "未查找到个人信息");
+        }
+        return Response.success().put(face);
+    }
+
     @ApiOperation(value = "获取状态")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "cdkey", value = "cdkey", required = true, dataType = "String", paramType = "query"),

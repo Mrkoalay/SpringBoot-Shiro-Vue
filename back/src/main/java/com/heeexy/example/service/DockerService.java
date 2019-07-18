@@ -56,7 +56,8 @@ public class DockerService {
     }
 
     private void restartContainer(CdKey cdKey) {
-        docker.restartContainerByNames(cdKey.getCdkey());
+        docker.removeContainerByNames(cdKey.getCdkey());
+        createContainer(cdKey);
         logger.info("=====>容器启动完成 " + cdKey.getCdkey());
     }
 
