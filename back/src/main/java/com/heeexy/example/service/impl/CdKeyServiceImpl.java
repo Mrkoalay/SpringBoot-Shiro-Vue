@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -52,6 +53,9 @@ public class CdKeyServiceImpl extends ServiceImpl<CdKeyDao, CdKey> implements Cd
     final Integer INVALID = 100;
     final Integer FINISH = 2;
     final Integer PROCESS = 3;
+
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
 
 
     @Override
@@ -97,6 +101,11 @@ public class CdKeyServiceImpl extends ServiceImpl<CdKeyDao, CdKey> implements Cd
         if (container != null && docker.isRunning(container)) {
             return Response.error(PROCESS, "当前激活码正在使用中，请在微信中操作");
         }
+
+        //清空原始状态
+        stringRedisTemplate.delete("status_" + cdkey);
+        stringRedisTemplate.delete("face_" + cdkey);
+        stringRedisTemplate.delete("qrcode_" + cdkey);
 
         dockerService.runContainer(cdKey);
 
