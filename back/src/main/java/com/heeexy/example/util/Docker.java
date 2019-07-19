@@ -4,20 +4,19 @@ import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.model.Container;
 import com.github.dockerjava.api.model.ExposedPort;
+import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.api.model.Ports;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientBuilder;
 import com.github.dockerjava.core.DockerClientConfig;
 import com.heeexy.example.entity.MyContainer;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.github.dockerjava.api.model.HostConfig.newHostConfig;
 
 @Component
 public class Docker {
@@ -64,7 +63,7 @@ public class Docker {
 
         return dockerClient.createContainerCmd(imageName)
                 .withName(containerName)
-                .withHostConfig(newHostConfig().withPortBindings(portBindings))
+                .withHostConfig(new HostConfig().withPortBindings(portBindings))
                 .withExposedPorts(tcp80).exec();
     }
 
