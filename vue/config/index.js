@@ -1,8 +1,9 @@
 // see http://vuejs-templates.github.io/webpack for documentation.
 var path = require('path')
+var _origin = JSON.parse(process.env.npm_config_argv).original
 module.exports = {
   build: {
-    env: require('./prod.env'),
+    env: (_origin[2] && _origin[2] == '--test') ? require('./dev.env') : require('./prod.env'),
     index: path.resolve(__dirname, '../dist/index.html'),
     assetsRoot: path.resolve(__dirname, '../dist'),
     assetsSubDirectory: 'static',
