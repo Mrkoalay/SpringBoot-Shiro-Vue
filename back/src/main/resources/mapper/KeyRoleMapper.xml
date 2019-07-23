@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.heeexy.example.dao.UserDao">
+<mapper namespace="com.heeexy.example.dao.KeyRoleDao">
 
     <select id="countUser" resultType="Integer">
         SELECT count(0)
@@ -44,7 +44,7 @@
              ) u
             LEFT JOIN sys_role r ON r.id = u.roleId
             LEFT JOIN sys_role_permission rp ON rp.role_id = r.id
-            LEFT JOIN sys_permission p ON p.id = rp.permission_id
+            LEFT JOIN key_permission p ON p.id = rp.permission_id
 
         ORDER BY u.userId
     </select>
@@ -53,7 +53,7 @@
         SELECT
             id        roleId,
             role_name roleName
-        FROM sys_role
+        FROM key_role
         WHERE delete_status='1'
     </select>
 
@@ -101,10 +101,10 @@
             p.menu_code       menuCode,
             p.menu_name       menuName,
             p.permission_name permissionName
-        FROM sys_role r
+        FROM key_role r
             LEFT JOIN sys_user u ON r.id = u.role_id AND u.delete_status = '1'
-            LEFT JOIN sys_role_permission rp ON r.id = rp.role_id AND rp.delete_status = '1'
-            LEFT JOIN sys_permission p ON rp.permission_id = p.id
+            LEFT JOIN key_role_permission rp ON r.id = rp.role_id AND rp.delete_status = '1'
+            LEFT JOIN key_permission p ON rp.permission_id = p.id
         WHERE r.delete_status = '1'
         ORDER BY r.id, p.id
     </select>
@@ -122,17 +122,17 @@
             p.menu_name           menuName,
             p.permission_name     permissionName,
             p.required_permission requiredPerm
-        FROM sys_permission p;
+        FROM key_permission p;
     </select>
 
     <insert id="insertRole" useGeneratedKeys="true" keyProperty="roleId">
-        INSERT INTO sys_role
+        INSERT INTO key_role
         (role_name)
         VALUES (#{roleName})
     </insert>
 
     <insert id="insertRolePermission">
-        insert into sys_role_permission (role_id, permission_id)
+        insert into key_role_permission (role_id, permission_id)
         values
         <foreach collection="permissions" item="item" index="index" separator=",">
             (#{roleId}, #{item})
@@ -155,28 +155,28 @@
             r.role_name roleName,
             u.id        userId,
             p.id        permissionId
-        FROM sys_role r
+        FROM key_role r
             LEFT JOIN sys_user u ON r.id = u.role_id AND u.delete_status = '1'
-            LEFT JOIN sys_role_permission rp ON r.id = rp.role_id AND rp.delete_status = '1'
-            LEFT JOIN sys_permission p ON rp.permission_id = p.id
+            LEFT JOIN key_role_permission rp ON r.id = rp.role_id AND rp.delete_status = '1'
+            LEFT JOIN key_permission p ON rp.permission_id = p.id
         WHERE r.id = #{roleId}
     </select>
 
     <update id="removeRole">
-        UPDATE sys_role
+        UPDATE key_role
         SET
             delete_status = '2'
         WHERE id = #{roleId}
     </update>
     <update id="removeRoleAllPermission">
-        UPDATE sys_role_permission
+        UPDATE key_role_permission
         SET
             delete_status = '2'
         WHERE role_id = #{roleId}
     </update>
 
     <update id="removeOldPermission">
-        UPDATE sys_role_permission
+        UPDATE key_role_permission
         SET
         delete_status = '2'
         WHERE role_id = #{roleId}
@@ -187,7 +187,7 @@
         )
     </update>
     <update id="updateRoleName">
-        UPDATE sys_role
+        UPDATE key_role
         SET
             role_name = #{roleName}
         WHERE id = #{roleId}

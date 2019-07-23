@@ -162,7 +162,7 @@ public class CommonUtil {
             if (!StringTools.isNullOrEmpty(missCol)) {
                 jsonObject.clear();
                 jsonObject.put("returnCode", ErrorEnum.E_90003.getErrorCode());
-                jsonObject.put("returnMsg", "缺少必填参数:" + missCol.trim());
+                jsonObject.put("returnMsg", "表单信息填写不完整:");
                 jsonObject.put("returnData", new JSONObject());
                 throw new CommonJsonException(jsonObject);
             }
