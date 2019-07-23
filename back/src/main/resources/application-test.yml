@@ -1,0 +1,68 @@
+
+spring:
+  redis:
+    #数据库索引
+    database: 0
+    host: 140.143.226.139
+    port: 6379
+    password: 2019#docker
+    jedis:
+      pool:
+        #最大连接数
+        max-active: 8
+        #最大阻塞等待时间(负数表示没限制)
+        #最大空闲
+        max-idle: 8
+        #最小空闲
+        min-idle: 0
+  datasource:
+      driver-class-name: com.mysql.jdbc.Driver
+      url: jdbc:mysql://140.143.226.139:3306/chat?useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true
+      username: root
+      password: 2019#docker
+  jackson:
+    time-zone: GMT+8
+    date-format: yyyy-MM-dd HH:mm:ss
+    default-property-inclusion: non_null
+mybatis-plus:
+  #type-handlers-package: cn.css.cssrest.utils.handler
+  mapper-locations: classpath:/mapper/**/*.xml
+  #实体扫描，多个package用逗号或者分号分隔
+  typeAliasesPackage: com.heeexy.example.entity
+  type-enums-package: com.heeexy.example.entity.enums
+  global-config:
+    #主键类型  0:"数据库ID自增", 1:"用户输入ID",2:"全局唯一ID (数字类型唯一ID)", 3:"全局唯一ID UUID";
+    id-type: 0
+    #字段策略 0:"忽略判断",1:"非 NULL 判断"),2:"非空判断"
+    field-strategy: 2
+    #驼峰下划线转换
+    db-column-underline: true
+    #刷新mapper 调试神器
+    refresh-mapper: true
+    #数据库大写下划线转换
+    #capital-mode: true
+    #序列接口实现类配置
+    #key-generator: cn.jeefast.xxx
+    #逻辑删除配置
+    logic-delete-value: 1
+    logic-not-delete-value: 0
+    #自定义填充策略接口实现
+    #meta-object-handler: cn.jeefast.xxx
+    #自定义SQL注入器
+    #sql-injector: cn.jeefast.xxx
+  configuration:
+    map-underscore-to-camel-case: true
+    cache-enabled: false
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+server:
+  port: 8081
+
+wechat:
+  docker:
+    image-name: memory/wechat
+    host: 140.143.226.139
+    port: 2375
+  protocol:
+    host: 62.234.70.116
+    ws-port: 22222
+    http-port: 22221
